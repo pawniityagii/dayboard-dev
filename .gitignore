@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+token.json
+client_secret*.json
+.venv/
+venv/
+voice.md

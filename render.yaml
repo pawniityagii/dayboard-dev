@@ -1,0 +1,31 @@
+# Render Blueprint for Dayboard. In Render: New -> Blueprint -> pick this repo,
+# and it provisions the service from here. (Or make a Web Service manually with
+# the same build/start commands.)
+#
+# After the first deploy, set the secret env vars in the Render dashboard and
+# add the production redirect URI to your Google OAuth client (see README).
+services:
+  - type: web
+    name: dayboard-dev
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # Production server: bind Render's $PORT on all interfaces, no reload, and
+    # DO NOT set OAUTHLIB_INSECURE_TRANSPORT (Render serves https).
+    startCommand: uvicorn dayboard.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      - key: TZ                  # server timezone: the brief's "today" and the
+        value: "Asia/Kolkata"    # displayed times use it. Change to your zone.
+      - key: SESSION_SECRET      # auto-generated once, stable across restarts
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID    # set in the dashboard (secret)
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: OAUTH_REDIRECT_URI  # https://<your-app>.onrender.com/oauth2callback
+        sync: false
+      - key: GEMINI_API_KEY      # optional - real AI reasoning
+        sync: false

@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en" data-daypart="{{ daypart }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dayboard</title>
+<meta name="theme-color" content="#0f1c30">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dayboard">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,620&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --r: 14px;
+    --maxw: 1080px;
+    /* defaults (dawn); overridden per daypart below */
+    --bg1:#ffe7d2; --bg2:#fff4ea; --bg3:#e9eff4;
+    --surface:#fffdfbee; --surface-solid:#fffdfb;
+    --ink:#2b2420; --muted:#7a6f66; --faint:#a99e93;
+    --line:#efe1d4; --line-strong:#e4d3c1;
+    --accent:#e07b3a; --accent2:#e0a93a; --meeting:#2f6f6a;
+    --urgent:#c3362b; --urgent-soft:#fbeceb; --ok:#35875f;
+    --normal:#b7791f; --normal-soft:#fbf3e3;
+    --primary:#d9693a; --primary-ink:#ffffff;
+    --horizon-a:#f2a65a; --horizon-b:#ef8f8a;
+    --sun: rgba(255,214,150,.55); --sun-pos: 14% -8%;
+    --shadow: 0 1px 2px rgba(60,40,20,.05), 0 10px 30px rgba(80,50,20,.07);
+    --shadow-lift: 0 2px 6px rgba(60,40,20,.08), 0 18px 40px rgba(80,50,20,.12);
+  }
+  html[data-daypart="day"] {
+    --bg1:#d7ebfb; --bg2:#eef6fd; --bg3:#fbf6ec;
+    --surface:#ffffffee; --surface-solid:#ffffff;
+    --ink:#1b2a33; --muted:#5e6f7a; --faint:#93a2ac;
+    --line:#e1ebf1; --line-strong:#d0dde6;
+    --accent:#2f84c4; --accent2:#e0953a; --meeting:#2f6f6a;
+    --urgent:#c3362b; --urgent-soft:#fbeaea; --ok:#2f8c5c;
+    --normal:#b7791f; --normal-soft:#fbf3e3;
+    --primary:#2f7fbe; --primary-ink:#ffffff;
+    --horizon-a:#7cc0e8; --horizon-b:#f0b45e;
+    --sun: rgba(255,241,200,.6); --sun-pos: 82% -6%;
+    --shadow: 0 1px 2px rgba(20,40,60,.05), 0 10px 30px rgba(20,50,90,.07);
+    --shadow-lift: 0 2px 6px rgba(20,40,60,.08), 0 18px 40px rgba(20,50,90,.12);
+  }
+  html[data-daypart="dusk"] {
+    --bg1:#fbddc6; --bg2:#f4dade; --bg3:#e6ddf1;
+    --surface:#fffaf7ee; --surface-solid:#fffaf7;
+    --ink:#2e2230; --muted:#766575; --faint:#a596a4;
+    --line:#efdee2; --line-strong:#e3ccd3;
+    --accent:#dd6a3f; --accent2:#9d5fae; --meeting:#3a7a72;
+    --urgent:#c33b3b; --urgent-soft:#f9e6e4; --ok:#3a8a63;
+    --normal:#b07420; --normal-soft:#f8efe0;
+    --primary:#c75a3b; --primary-ink:#ffffff;
+    --horizon-a:#ef8a52; --horizon-b:#b06bc0;
+    --sun: rgba(255,200,150,.5); --sun-pos: 86% 6%;
+    --shadow: 0 1px 2px rgba(50,30,50,.06), 0 10px 30px rgba(70,40,70,.1);
+    --shadow-lift: 0 2px 6px rgba(50,30,50,.1), 0 18px 40px rgba(70,40,70,.16);
+  }
+  html[data-daypart="night"] {
+    --bg1:#0f1c30; --bg2:#122339; --bg3:#0c1424;
+    --surface:#182a42f2; --surface-solid:#182a42;
+    --ink:#e9eff8; --muted:#9fb0c6; --faint:#6f829b;
+    --line:#26384f; --line-strong:#33496a;
+    --accent:#f0b45e; --accent2:#6ea8dd; --meeting:#6fb3aa;
+    --urgent:#f0756a; --urgent-soft:#2c1a1a; --ok:#5cc08a;
+    --normal:#e6b05a; --normal-soft:#231d12;
+    --primary:#f0b45e; --primary-ink:#10243a;
+    --horizon-a:#f0b45e; --horizon-b:#6e86c4;
+    --sun: rgba(150,180,220,.22); --sun-pos: 82% 4%;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 12px 34px rgba(0,0,0,.45);
+    --shadow-lift: 0 2px 8px rgba(0,0,0,.45), 0 20px 46px rgba(0,0,0,.55);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; background: var(--bg3); }
+  body {
+    margin: 0; min-height: 100vh; color: var(--ink);
+    font-family: var(--sans); font-size: 15px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    background: linear-gradient(170deg, var(--bg1) 0%, var(--bg2) 52%, var(--bg3) 100%);
+    transition: color .6s ease;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(42vw 42vw at var(--sun-pos), var(--sun), transparent 70%);
+    transition: background .8s ease;
+  }
+  .page { position: relative; z-index: 1; }
+  a { color: inherit; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  .topbar { position: sticky; top: 0; z-index: 20; backdrop-filter: saturate(1.3) blur(10px); }
+  .bar-inner { max-width: var(--maxw); margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+  .brand-mark { width: 24px; height: 24px; border-radius: 50%; background: radial-gradient(120% 120% at 30% 25%, var(--horizon-a), var(--horizon-b) 70%); box-shadow: 0 0 0 1px rgba(255,255,255,.2) inset, 0 2px 10px color-mix(in srgb, var(--horizon-a) 55%, transparent); }
+  .brand-name { font-family: var(--serif); font-weight: 600; font-size: 20px; letter-spacing: -.01em; }
+  .bar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+  .badge { font-size: 11.5px; font-weight: 500; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 999px; padding: 3px 10px; white-space: nowrap; background: var(--surface); }
+  .badge-live { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--line-strong)); }
+  .chip { font-size: 11.5px; color: var(--faint); border: 1px dashed var(--line-strong); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+  .chip-on { color: var(--meeting); border-style: solid; border-color: color-mix(in srgb, var(--meeting) 40%, var(--line-strong)); }
+  .btn { font-family: var(--sans); font-size: 13px; font-weight: 550; border-radius: 9px; padding: 7px 14px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); transition: transform .12s ease, box-shadow .12s ease; }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn-solid { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+  .btn-ghost { background: transparent; }
+  .horizon { height: 2px; background: linear-gradient(90deg, transparent 0%, var(--horizon-a) 24%, var(--horizon-b) 52%, transparent 94%); transition: background .8s ease; }
+
+  .note { border-radius: 12px; padding: 12px 16px; margin: 18px 0 0; font-size: 13.5px; border: 1px solid var(--line-strong); background: var(--surface); }
+  .note-ok { background: color-mix(in srgb, var(--ok) 14%, var(--surface-solid)); border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); color: color-mix(in srgb, var(--ok) 72%, var(--ink)); }
+  .note-err, .note-warn { background: var(--urgent-soft); border-color: color-mix(in srgb, var(--urgent) 35%, var(--line)); color: color-mix(in srgb, var(--urgent) 72%, var(--ink)); }
+
+  .hero { padding: 42px 0 8px; }
+  .hero-date { margin: 0 0 14px; color: var(--muted); font-size: 14px; font-weight: 500; }
+  .greeting { margin: 0; font-family: var(--serif); font-weight: 500; font-size: clamp(32px, 5.2vw, 52px); line-height: 1.04; letter-spacing: -.02em; }
+  .greeting-sub { margin: 10px 0 0; font-family: var(--serif); font-weight: 500; font-size: clamp(17px, 2vw, 21px); color: var(--muted); font-style: italic; }
+  .hero-summary { margin: 18px 0 0; font-size: 16.5px; line-height: 1.5; max-width: 54ch; color: var(--ink); }
+  .hero-meta { margin: 14px 0 0; color: var(--faint); font-size: 13px; }
+  .hero-meta a { color: var(--meeting); text-decoration: none; font-weight: 550; }
+  .hero-meta a:hover { text-decoration: underline; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 26px 0 8px; }
+  .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+  .kpi-alert::before { background: var(--urgent); }
+  .kpi-num { font-family: var(--serif); font-weight: 620; font-size: 30px; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; display: block; }
+  .kpi-alert .kpi-num { color: var(--urgent); }
+  .kpi-label { display: block; margin-top: 7px; font-size: 12.5px; color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: 1.7fr 1fr; gap: 26px; margin: 22px 0 10px; align-items: start; }
+  section + section { margin-top: 30px; }
+  .sec { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .count { font-size: 11px; font-weight: 600; color: var(--faint); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; font-variant-numeric: tabular-nums; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 12px; }
+
+  .reply-head { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 7px; background: var(--faint); }
+  .dot-urgent { background: var(--urgent); } .dot-normal { background: var(--normal); } .dot-low { background: var(--faint); }
+  .reply-title { margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: -.005em; }
+  .reply-detail { margin: 3px 0 0; color: var(--muted); font-size: 13.5px; }
+  .pri { font-size: 10.5px; font-weight: 650; text-transform: capitalize; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .pri-urgent { background: var(--urgent-soft); color: var(--urgent); }
+  .pri-normal { background: var(--normal-soft); color: var(--normal); }
+  .pri-low { background: var(--line); color: var(--muted); }
+
+  .disclose { margin-top: 12px; font-family: var(--sans); font-size: 13px; font-weight: 550; color: var(--meeting); background: none; border: none; padding: 0; cursor: pointer; }
+  .disclose::after { content: " \203A"; display: inline-block; transition: transform .16s ease; }
+  .disclose[aria-expanded="true"]::after { transform: rotate(90deg); }
+  .draft { display: none; margin-top: 12px; }
+  .draft.open { display: block; }
+  .reply-body { width: 100%; box-sizing: border-box; font-family: var(--sans); font-size: 13.5px; line-height: 1.6; color: var(--ink); background: color-mix(in srgb, var(--bg2) 60%, var(--surface-solid)); border: 1px solid var(--line-strong); border-radius: 10px; padding: 12px 14px; resize: vertical; }
+  .reply-preview { white-space: pre-wrap; }
+  textarea.reply-body:focus { outline: 2px solid color-mix(in srgb, var(--meeting) 55%, transparent); outline-offset: 1px; border-color: var(--meeting); }
+  .reply-actions { display: flex; align-items: center; gap: 10px; margin-top: 11px; flex-wrap: wrap; }
+  .muted-note { color: var(--faint); font-size: 12px; }
+
+  .event { display: grid; grid-template-columns: 76px 1fr; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .event:last-child { border-bottom: none; }
+  .event-time { font-variant-numeric: tabular-nums; font-size: 12.5px; font-weight: 600; color: var(--accent); padding-top: 1px; }
+  .event-title { font-size: 14px; font-weight: 550; }
+  .event-meta { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+
+  .checklist { list-style: none; margin: 0; padding: 0; }
+  .check-item label { display: flex; align-items: flex-start; gap: 11px; cursor: pointer; padding: 8px 0; font-size: 13.5px; }
+  .check-box { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; border: 1.5px solid var(--line-strong); border-radius: 6px; margin: 1px 0 0; flex-shrink: 0; cursor: pointer; display: grid; place-content: center; transition: background .12s ease, border-color .12s ease; }
+  .check-box::after { content: ""; width: 10px; height: 6px; border-left: 2px solid var(--primary-ink); border-bottom: 2px solid var(--primary-ink); transform: rotate(-45deg) scale(0); transition: transform .14s ease; margin-top: -2px; }
+  .check-box:checked { background: var(--ok); border-color: var(--ok); }
+  .check-box:checked::after { transform: rotate(-45deg) scale(1); }
+  .check-item.done .check-text { color: var(--faint); text-decoration: line-through; }
+
+  .fyi-row { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+  .fyi-row:last-child { border-bottom: none; }
+  .fyi-row .dot { margin-top: 6px; }
+  .empty { color: var(--muted); font-size: 13.5px; background: var(--surface); border: 1px dashed var(--line-strong); border-radius: var(--r); padding: 18px; }
+  footer { margin: 44px 0 56px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12.5px; line-height: 1.7; }
+
+  @media (max-width: 760px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .grid { grid-template-columns: 1fr; gap: 10px; }
+    .col-side { margin-top: 14px; }
+    .bar-inner { padding: 12px 18px; } .wrap { padding: 0 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, body::before { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="topbar">
+  <div class="bar-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Dayboard</span>
+    </a>
+    <div class="bar-right">
+      <span class="badge {{ 'badge-live' if connected else '' }}">{{ "LIVE - your Google account" if connected else "DEMO - sample data" }}</span>
+      <span class="chip {{ 'chip-on' if llm_active else '' }}">{{ "AI reasoning" if llm_active else "rules mode" }}</span>
+      {% if connected %}
+      <a class="btn btn-ghost" href="/disconnect">Disconnect</a>
+      {% else %}
+      <a class="btn btn-solid" href="/connect">Connect Google</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="horizon"></div>
+</header>
+
+<div class="wrap">
+  {% if connect_error %}<div class="note note-warn">{{ connect_error }}</div>{% endif %}
+  {% if flash %}<div class="note note-{{ flash.kind }}">{{ flash.text }}</div>{% endif %}
+
+  <section class="hero">
+    <p class="hero-date">{{ brief.generated_at.strftime("%A, %B %-d") }}</p>
+    <h1 class="greeting" data-name="{{ user_name }}">{{ greeting }}{% if user_name %}, {{ user_name }}{% endif %}</h1>
+    <p class="greeting-sub">{{ greeting_sub }}</p>
+    <p class="hero-summary">{{ brief.summary }}</p>
+    <p class="hero-meta">Updated {{ brief.generated_at.strftime("%-I:%M %p") }} &middot; <a href="/refresh">Refresh</a></p>
+  </section>
+
+  <section class="kpis">
+    <div class="kpi"><span class="kpi-num">{{ brief.needs_reply|length }}</span><span class="kpi-label">Need a reply</span></div>
+    <div class="kpi"><span class="kpi-num">{{ brief.meetings|length }}</span><span class="kpi-label">Meetings</span></div>
+    <div class="kpi {{ 'kpi-alert' if brief.conflicts else '' }}"><span class="kpi-num">{{ brief.conflicts|length }}</span><span class="kpi-label">Conflicts</span></div>
+    <div class="kpi"><span class="kpi-num">{{ brief.action_items|length }}</span><span class="kpi-label">Action items</span></div>
+  </section>
+
+  {% for c in brief.conflicts %}
+  <div class="note note-err">Schedule conflict: <strong>{{ c.event_a }}</strong> overlaps <strong>{{ c.event_b }}</strong> from {{ c.overlap_start.strftime("%-I:%M %p") }} to {{ c.overlap_end.strftime("%-I:%M %p") }}.</div>
+  {% endfor %}
+
+  <div class="grid">
+    <main class="col-main">
+      <section>
+        <h2 class="sec">Needs your reply <span class="count">{{ brief.needs_reply|length }}</span></h2>
+        {% if brief.needs_reply %}
+          {% for item in brief.needs_reply %}
+          <article class="card">
+            <div class="reply-head">
+              <span class="dot dot-{{ item.priority.value }}" aria-hidden="true"></span>
+              <div>
+                <h3 class="reply-title">{{ item.title }}</h3>
+                <p class="reply-detail">{{ item.detail }}</p>
+              </div>
+              <span class="pri pri-{{ item.priority.value }}">{{ item.priority.value }}</span>
+            </div>
+            {% if item.draft_reply %}
+            <button class="disclose" onclick="toggleDraft(this)" aria-expanded="false">Draft reply</button>
+            <div class="draft">
+              {% if connected %}
+              <form method="post" action="/send" class="reply-form">
+                <input type="hidden" name="email_id" value="{{ item.source_id }}">
+                <textarea name="reply" class="reply-body" rows="7">{{ item.draft_reply }}</textarea>
+                <div class="reply-actions">
+                  <button type="submit" class="btn btn-solid">Approve &amp; send</button>
+                  <button type="button" class="btn btn-ghost" onclick="copyReply(this)">Copy</button>
+                  <span class="muted-note">Sends to the original sender, in the same thread.</span>
+                </div>
+              </form>
+              {% else %}
+              <div class="reply-body reply-preview">{{ item.draft_reply }}</div>
+              <div class="reply-actions">
+                <button type="button" class="btn btn-ghost" onclick="copyReply(this)">Copy</button>
+                <span class="muted-note">Connect Google to send replies.</span>
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+          </article>
+          {% endfor %}
+        {% else %}
+          <div class="empty">Nothing needs a reply right now. Enjoy the quiet.</div>
+        {% endif %}
+      </section>
+
+      {% if brief.fyi %}
+      <section>
+        <h2 class="sec">Good to know <span class="count">{{ brief.fyi|length }}</span></h2>
+        <div class="card">
+          {% for item in brief.fyi %}
+          <div class="fyi-row"><span class="dot dot-low" aria-hidden="true"></span><span>{{ item.title }}</span></div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    </main>
+
+    <aside class="col-side">
+      <section>
+        <h2 class="sec">Today's schedule <span class="count">{{ brief.meetings|length }}</span></h2>
+        {% if brief.meetings %}
+        <div class="card">
+          {% for item in brief.meetings %}
+          {% set parts = item.title.split(' - ', 1) %}
+          <div class="event">
+            <div class="event-time">{{ parts[0] }}</div>
+            <div class="event-body">
+              <div class="event-title">{{ parts[1] if parts|length > 1 else item.title }}</div>
+              <div class="event-meta">{{ item.detail }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty">Nothing on the calendar today.</div>
+        {% endif %}
+      </section>
+
+      {% if brief.action_items %}
+      <section>
+        <h2 class="sec">Action items <span class="count" id="progress">0/{{ brief.action_items|length }}</span></h2>
+        <div class="card">
+          <ul class="checklist" id="checklist">
+            {% for a in brief.action_items %}
+            <li class="check-item">
+              <label><input type="checkbox" class="check-box" data-key="{{ a }}"><span class="check-text">{{ a }}</span></label>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+      {% endif %}
+    </aside>
+  </div>
+
+  <footer>
+    Dayboard reads your inbox and calendar and tells you what matters. Nothing is sent without your approval.<br>
+    {{ "Running on your connected Google account." if connected else "A demo on sample data — connect Google to run it on your real inbox." }}
+  </footer>
+</div>
+</div>
+
+<script>
+  var PARTS = {
+    dawn:  { g: "Good morning",   s: "Here's your day." },
+    day:   { g: "Good afternoon", s: "Here's where things stand." },
+    dusk:  { g: "Good evening",   s: "Here's what you missed today." },
+    night: { g: "Good evening",   s: "Here's what you missed today." }
+  };
+  function daypartFor(h) {
+    if (h >= 5 && h < 11) return "dawn";
+    if (h >= 11 && h < 17) return "day";
+    if (h >= 17 && h < 22) return "dusk";
+    return "night";
+  }
+  var THEME_COLORS = { dawn: "#ffe4cd", day: "#d7ebfb", dusk: "#fbddc6", night: "#0f1c30" };
+  function applyDaypart() {
+    var p = daypartFor(new Date().getHours());
+    document.documentElement.setAttribute("data-daypart", p);
+    var tc = document.querySelector('meta[name="theme-color"]');
+    if (tc && THEME_COLORS[p]) tc.setAttribute("content", THEME_COLORS[p]);
+    var g = document.querySelector(".greeting");
+    var s = document.querySelector(".greeting-sub");
+    if (g) { var name = g.getAttribute("data-name"); g.textContent = PARTS[p].g + (name ? ", " + name : ""); }
+    if (s) { s.textContent = PARTS[p].s; }
+  }
+  applyDaypart();
+  setInterval(applyDaypart, 60000);
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  }
+
+  function toggleDraft(btn) {
+    var draft = btn.nextElementSibling;
+    var open = draft.classList.toggle("open");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.textContent = open ? "Hide draft" : "Draft reply";
+  }
+  function copyReply(btn) {
+    var box = btn.closest(".draft");
+    var ta = box.querySelector("textarea.reply-body");
+    var text = ta ? ta.value : box.querySelector(".reply-preview").textContent;
+    var done = function () { var o = btn.textContent; btn.textContent = "Copied"; setTimeout(function(){ btn.textContent = o; }, 1400); };
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, done); }
+    else { var t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); } catch (e) {} document.body.removeChild(t); done(); }
+  }
+  (function () {
+    var KEY = "dayboard.done.v1";
+    var list = document.getElementById("checklist"); if (!list) return;
+    var boxes = Array.prototype.slice.call(list.querySelectorAll(".check-box"));
+    var progress = document.getElementById("progress");
+    var done = {}; try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { done = {}; }
+    function update() {
+      var n = 0;
+      boxes.forEach(function (b) { var li = b.closest(".check-item"); if (b.checked) { n++; li.classList.add("done"); } else { li.classList.remove("done"); } });
+      if (progress) progress.textContent = n + "/" + boxes.length;
+    }
+    boxes.forEach(function (b) {
+      if (done[b.dataset.key]) b.checked = true;
+      b.addEventListener("change", function () {
+        if (b.checked) { done[b.dataset.key] = 1; } else { delete done[b.dataset.key]; }
+        try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {}
+        update();
+      });
+    });
+    update();
+  })();
+</script>
+</body>
+</html>
